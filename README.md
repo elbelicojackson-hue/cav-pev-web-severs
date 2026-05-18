@@ -2,6 +2,36 @@
 
 基于CAV唯一公民协议的CCB — 多智能体逆向工程协同框架
 
+<!-- 项目 Banner（替换为你的实际截图） -->
+<!-- ![CAV-CCB Banner](docs/images/banner.png) -->
+
+> 🛡️ **Hacking Code 工具套件** | 💰 **商业授权: ¥499** | 📧 联系: [@elbelicojackson-hue](https://github.com/elbelicojackson-hue)
+
+---
+
+## 💰 定价 & 商业授权
+
+| 方案 | 价格 | 包含内容 |
+|------|------|----------|
+| **个人学习** | 免费查看 | 仅限阅读源码，不可使用/部署/修改 |
+| **Hacking Code 工具授权** | **¥499** (一次性) | 完整源码使用权 + 部署权 + 1 年更新 |
+| **团队/企业授权** | 联系报价 | 多人使用 + 定制开发 + 技术支持 |
+
+### Hacking Code 工具授权 (¥499) 包含：
+
+- ✅ 完整 CAV/CCB/PEV 源码使用权
+- ✅ 逆向工程全套工具链（DiE、UPX、IDA headless、Ghidra、YARA）
+- ✅ 多智能体协同分析能力（4+ LLM 并行）
+- ✅ 24 个 Canonical Tool Plans（开箱即用）
+- ✅ 私有部署权（本地/内网）
+- ✅ 1 年内版本更新
+- ❌ 不含转授权 / 二次分发权
+- ❌ 不含算法专利授权（仅使用权）
+
+**购买方式**: 通过 GitHub 联系 [@elbelicojackson-hue](https://github.com/elbelicojackson-hue)
+
+---
+
 ## 概述
 
 CAV/CCB 是一套**多智能体协同逆向工程框架**，将传统单模型"一问一答"的 RE 工作流升级为结构化的假设驱动执行循环。系统通过进程持有的状态机（而非模型记忆）管理假设生命周期，彻底解决了 LLM 在第 4-5 轮后注意力塌陷、漏验证、混淆已证伪假设等核心痛点。
@@ -166,6 +196,29 @@ Property-Based Tests (fast-check, 200 runs each):
 - Property 9: VerdictEngine 引用透明性
 - Property 10: 自反不变性（无自我反馈）
 - Property 11: reducer 不可变性
+
+## 截图展示
+
+<!-- 把你的截图放到 docs/images/ 目录，然后取消下面的注释 -->
+
+<!-- ### PEV 运行界面 -->
+<!-- ![PEV Session UI](docs/images/pev-session-ui.png) -->
+
+<!-- ### 假设树实时渲染 -->
+<!-- ![Hypothesis Tree](docs/images/hypothesis-tree.png) -->
+
+<!-- ### 证据日志 + Verdict 着色 -->
+<!-- ![Evidence Log](docs/images/evidence-log.png) -->
+
+<!-- ### 与单模型对比效果 -->
+<!-- ![Comparison](docs/images/comparison.png) -->
+
+<!-- ### 最终 .pev.json 审计轨迹 -->
+<!-- ![PEV JSON](docs/images/pev-json-output.png) -->
+
+> 💡 **如何添加截图**: 将 PNG/JPG 文件放入 `docs/images/` 目录，然后取消上面对应行的 `<!-- -->` 注释即可显示。
+
+---
 
 ## 许可证
 
