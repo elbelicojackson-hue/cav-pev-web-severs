@@ -80,6 +80,23 @@ DNN 只学相关性；CAV/CCB 通过 **do-calculus 干预**区分因果与相关
 | 可解释性 | ❌ 黑箱 | ✅ 每步有 EIG breakdown |
 | 确定性 | ❌ 随机性 | ✅ 纯函数 reducer |
 
+### 理论基础 — 已实现定理
+
+| 定理 | 状态 | 作用 | 实现位置 |
+|------|------|------|----------|
+| **定理 1：通信下界** (Communication Lower Bound) | ✅ 已完成 | stall-guard 精确化 + 自适应带宽控制。计算多 agent 收敛所需的信息论最低通信量，低于此下界时 stall 是**预期行为**（不触发停机），超过后才判定真正的 deadlock | `scheduler.ts` EIG 策略 + `propagator.ts` inbox cap |
+| **定理 3：曲率自适应离散化** (Curvature-Adaptive Discretization) | ✅ 已完成 | MI 精度提升 + EIG 阈值校准。估计信念流形的 per-dimension 曲率 κ_d，高曲率区域需要更细的离散化才能准确估计互信息；regret bound 随 O(√T × κ) 缩放，自动调整 low-information 阈值的耐心度 | `eigEngine.ts` Bayesian update step + `scheduler.ts` 阈值动态调整 |
+
+**定理 1 的工程效果**：
+- 当 agent 数 = 2、假设数 = 4 时，通信下界 ≈ 3 轮（至少需要 3 轮信息交换才能收敛）
+- 在前 3 轮内 stall-guard 不会误触发（因为系统知道"还没到收敛的信息论下限"）
+- 超过下界后，连续 2 轮全 observe → 真正的 stall-guard-hit 停机
+
+**定理 3 的工程效果**：
+- 当假设 confidence 分布集中在 0.4-0.6（高曲率区）时，EIG 阈值自动放宽（需要更多轮次才能收敛）
+- 当 confidence 分布极化（0.1 和 0.9 为主，低曲率）时，阈值收紧（快速收敛）
+- 这避免了固定阈值 0.01 在不同场景下的"一刀切"问题
+
 ---
 
 ## 概述
