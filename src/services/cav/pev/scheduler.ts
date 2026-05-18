@@ -36,6 +36,7 @@
  */
 
 import { getToolPlansForKind, type ToolPlan } from './canonicalTests.js'
+import { applyCausalBoost } from './causalEngine.js'
 import { computeEIG, computeExplorationBonus, rankCandidates, DEFAULT_EXPLORATION_WEIGHT, type EIGCandidate } from './eigEngine.js'
 import type { Hypothesis, SharedLedger } from './ledger.js'
 import type { HypothesisKind } from './protocol.js'
@@ -113,10 +114,19 @@ export type PevBudget = {
  * candidate already touched this round). Two consecutive warnings
  * trigger the runner's `stall-guard` stop reason (R7-7) — the scheduler
  * itself never raises that; it only flags the warning.
+ *
+ * `commBound` exposes the information-theoretic lower bound analysis
+ * (Theorem 1) so the runner and UI can display convergence progress.
  */
 export type SchedulerResult = {
   readonly perAgentDirective: ReadonlyMap<string, ScheduleDirective>
   readonly stallGuardWarning: boolean
+  /** Communication lower bound analysis (Theorem 1). Present when
+   *  strategy='eig'. Null for legacy greedy-confidence. */
+  readonly commBound: CommBoundAnalysis | null
+  /** Curvature-adaptive profile (Theorem 3). Present when strategy='eig'
+   *  and CAV records are available. Null otherwise. */
+  readonly curvatureProfile: CurvatureProfile | null
 }
 
 /* -------------------------------------------------------------------------- */
@@ -263,7 +273,9 @@ export function schedule(
 
     // --- Strategy fork ---
     if (strategy === 'eig') {
-      // EIG strategy: evaluate all (H, plan) pairs and pick the best
+      // EIG strategy: evaluate all (H, plan) pairs and pick the best.
+      // Plans with causal intervention support get a 1.5× EIG boost
+      // because they can distinguish causation from correlation.
       const eigCandidates: EIGCandidate[] = []
       for (const h of fresh) {
         const plans = getToolPlansForKind(h.kind)
@@ -275,12 +287,13 @@ export function schedule(
           if (alreadyTested) continue
           const eigResult = computeEIG(h, plan, ledger)
           const bonus = computeExplorationBonus(h, plan, ledger, explorationWeight)
+          const boostedEig = applyCausalBoost(eigResult.eig, plan.id)
           eigCandidates.push({
             hypothesis: h,
             plan,
-            eig: eigResult.eig,
+            eig: boostedEig,
             explorationBonus: bonus,
-            total: eigResult.eig + bonus,
+            total: boostedEig + bonus,
             breakdown: eigResult.breakdown,
           })
         }
