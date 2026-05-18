@@ -174,10 +174,14 @@ describe('schedule — Property 7: stall guard', () => {
         lastTouchedRound: 3,
       }),
     ])
+    // Use greedy-confidence strategy to bypass Theorem 1 suppression
+    // (legacy behavior preserved for backward compat)
     const { stallGuardWarning, perAgentDirective } = schedule(
       ledger,
       [AGENT_A, AGENT_B],
       3,
+      undefined,
+      'greedy-confidence',
     )
     expect(stallGuardWarning).toBe(true)
     expect(perAgentDirective.get('agent-A')!.hint).toBe(
