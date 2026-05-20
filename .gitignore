@@ -1,0 +1,40 @@
+# Secrets - NEVER commit
+.env
+.env.*
+*.env
+secrets.vault
+npc-keys/
+
+# Build artifacts
+dist/
+server/cav-npc/bin/
+server/cav-npc/cav-npc
+server/cav-npc/cav-npc.exe
+server/cav-gateway/bin/
+server/cav-node/bin/
+
+# Embedded repos
+everything-claude-code/
+hermes-agent/
+
+# OS
+.DS_Store
+Thumbs.db
+nul
+
+# IDE
+.idea/
+.vscode/
+
+# Node
+node_modules/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Kiro tmp
+.kiro/tmp/

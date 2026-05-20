@@ -1,0 +1,17 @@
+{
+  "name": "claude-code-main",
+  "version": "2.1.888",
+  "private": true,
+  "description": "Launcher manifest for the prebuilt Claude Code CLI in dist/. The original source-build manifest is missing from this tree; this file exists solely so `bun run dev` / `bun run start` etc. resolve to the bundled dist/cli.js entry.",
+  "type": "module",
+  "bin": {
+    "claude": "dist/cli.js"
+  },
+  "scripts": {
+    "dev": "bun dist/cli.js",
+    "start": "bun dist/cli.js",
+    "claude": "bun dist/cli.js",
+    "version": "bun dist/cli.js --version",
+    "node:start": "node dist/cli-node.js"
+  }
+}

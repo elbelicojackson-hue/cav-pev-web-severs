@@ -187,6 +187,19 @@ export type PevRunOpts = {
    * `'stall-guard-hit'` (R7-7). Default 2.
    */
   readonly stallGuardConsecutive?: number
+  /**
+   * Enable the read-only web dashboard server (FR-1). When true, the
+   * runner dynamically imports and starts an HTTP server on
+   * `127.0.0.1:<port>` and pushes every PevRoundEvent to connected
+   * browser tabs via SSE. The URL is printed to stderr at startup.
+   *
+   * Failures during dashboard startup (port busy, etc.) are logged at
+   * debug level and the run continues without dashboard (NFR-5).
+   *
+   * Default `false`: tests do not start a server. Production callers
+   * (`ccb-pev.tsx` / `ccb-arena.tsx`) opt in.
+   */
+  readonly enableDashboard?: boolean
 }
 
 /** Reason the loop terminated. Surfaced to the UI for the final summary. */
@@ -682,7 +695,15 @@ async function executeToolCall(args: {
  * Errors at any step are caught and either surfaced as a `parseResult.ok=false`
  * event or absorbed silently — the runner NEVER throws to its caller.
  */
-export async function* runPev(
+/**
+ * Internal core generator — implements the PEV loop.
+ *
+ * Public callers use {@link runPev} instead, which wraps this with the
+ * optional dashboard mirror. Tests and direct consumers may still use
+ * `runPev` directly; the wrapper is transparent when `enableDashboard`
+ * is false (it just forwards events 1:1).
+ */
+async function* runPevCore(
   opts: PevRunOpts,
 ): AsyncGenerator<PevRoundEvent, void, void> {
   // Resolve options + defaults up-front so we don't repeat the
@@ -979,6 +1000,115 @@ export async function* runPev(
     reason: 'budget-cap-hit',
     finalLedger: ledger,
     detail: `maxRounds=${budget.maxRounds} reached`,
+  }
+}
+
+/* -------------------------------------------------------------------------- */
+/* runPev — public wrapper with optional dashboard mirror                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * Drive the PEV loop end-to-end and yield events as they happen.
+ *
+ * This is the public entry point. It wraps {@link runPevCore} with an
+ * optional dashboard mirror: when `opts.enableDashboard === true`, every
+ * yielded event is also pushed to a localhost HTTP server that streams
+ * to connected browser tabs via SSE. The wrapper is transparent — it
+ * yields the exact same events as the core in the exact same order.
+ *
+ * Dashboard failures (port busy, push errors) are caught and logged at
+ * debug level. They NEVER affect the PEV loop or its event stream.
+ */
+export async function* runPev(
+  opts: PevRunOpts,
+): AsyncGenerator<PevRoundEvent, void, void> {
+  // Fast path: no dashboard requested → forward 1:1, zero overhead.
+  if (!opts.enableDashboard) {
+    yield* runPevCore(opts)
+    return
+  }
+
+  // Slow path: lazy-import the dashboard machinery, start the server,
+  // then iterate the core generator while mirroring each event.
+  type DashboardHandle = {
+    readonly url: string
+    readonly port: number
+    push(event: import('./dashboard/events.js').DashboardEvent): void
+    close(): Promise<void>
+  }
+  let dashboard: DashboardHandle | null = null
+  let toDashboardEventsFn:
+    | typeof import('./dashboard/events.js').toDashboardEvents
+    | null = null
+
+  try {
+    const dashMod = await import('./dashboard/server.js')
+    const evMod = await import('./dashboard/events.js')
+    const handle = await dashMod.startDashboard()
+    if (handle) {
+      dashboard = handle
+      toDashboardEventsFn = evMod.toDashboardEvents
+      // Print clickable URL to stderr — VS Code / iTerm2 / Windows
+      // Terminal recognise OSC 8 hyperlinks. Falls back to plain text
+      // when NO_COLOR is set.
+      const url = handle.url
+      const text = `📊 PEV Dashboard: ${url}`
+      const formatted = process.env.NO_COLOR
+        ? text
+        : `\x1b]8;;${url}\x07${text}\x1b]8;;\x07`
+      process.stderr.write(formatted + '\n')
+    }
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    console.debug(`[pev/runner] dashboard startup failed: ${msg}`)
+  }
+
+  // Track ledger state alongside the event stream so we can serialise
+  // the latest snapshot for the dashboard. Most PevRoundEvents either
+  // carry a ledger directly or imply "use the most recently seen one".
+  let lastLedger: SharedLedger = createEmptyLedger(opts.budget.maxToolCalls)
+  let lastRound = 0
+  const agentCount = opts.providers.length
+
+  /** Best-effort push — never throws. */
+  function safePush(event: PevRoundEvent): void {
+    if (!dashboard || !toDashboardEventsFn) return
+    try {
+      // Update local ledger tracking for serialisation.
+      if (event.kind === 'ledger-update' || event.kind === 'round-end') {
+        lastLedger = event.ledger
+        if (event.kind === 'round-end') lastRound = event.round
+      } else if (event.kind === 'run-end') {
+        lastLedger = event.finalLedger
+      } else if (event.kind === 'round-start') {
+        lastRound = event.round
+      }
+      const dashEvents = toDashboardEventsFn(event, lastLedger, agentCount, lastRound)
+      for (const de of dashEvents) {
+        dashboard.push(de)
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      console.debug(`[pev/runner] dashboard push failed: ${msg}`)
+    }
+  }
+
+  try {
+    for await (const event of runPevCore(opts)) {
+      safePush(event)
+      yield event
+    }
+  } finally {
+    // Always close the dashboard, even if the consumer breaks out of
+    // the for-await loop early (e.g. they only wanted N events).
+    if (dashboard) {
+      try {
+        await dashboard.close()
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.debug(`[pev/runner] dashboard close failed: ${msg}`)
+      }
+    }
   }
 }
 

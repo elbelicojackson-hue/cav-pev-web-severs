@@ -1,0 +1,182 @@
+[
+  {
+    "task": {
+      "id": "seed_crypto_001",
+      "domain": "crypto",
+      "capabilities": ["rsa", "modular_arithmetic"],
+      "prompt": "Given RSA modulus n=21 and public exponent e=5, ciphertext c=10. Provide the conclusion (the plaintext m) and document your methodology and grounding.",
+      "evidence_pack": "n=21=3*7; phi(n)=12; d=e^-1 mod 12.",
+      "difficulty": 0.30,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "m=10",
+      "accepted_alternatives": ["plaintext is 10", "m equals 10", "the plaintext m = 10"],
+      "required_methodology": {
+        "prior_source_tags": ["tool", "observation"],
+        "inference_method_tags": ["deductive"]
+      },
+      "required_grounding_tags": ["modular_arithmetic", "rsa_decryption"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_crypto_002",
+      "domain": "crypto",
+      "capabilities": ["hash", "collision"],
+      "prompt": "A hash function with 64-bit output is used to deduplicate 5 billion records. Estimate the expected number of collisions using the birthday-paradox approximation, and state your reasoning.",
+      "evidence_pack": "N=2^64, k=5e9; expected collisions ≈ k^2 / (2N).",
+      "difficulty": 0.45,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "expected collisions ≈ 0.68 (about 1)",
+      "accepted_alternatives": ["~1", "approximately 1", "around 0.68", "between 0 and 1"],
+      "required_methodology": {
+        "prior_source_tags": ["tool"],
+        "inference_method_tags": ["statistical", "deductive"]
+      },
+      "required_grounding_tags": ["birthday_paradox", "hash_collisions"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_crypto_003",
+      "domain": "crypto",
+      "capabilities": ["aes", "mode_attack"],
+      "prompt": "An attacker observes that the same plaintext block produces the same ciphertext block under repeated encryption with an unknown key. Identify the cipher mode in use and state your falsifier.",
+      "evidence_pack": "Visible ECB penguin pattern in image-encoded ciphertext.",
+      "difficulty": 0.20,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "ECB",
+      "accepted_alternatives": ["mode is ECB", "Electronic Codebook", "ECB mode"],
+      "required_methodology": {
+        "prior_source_tags": ["observation"],
+        "inference_method_tags": ["abductive"]
+      },
+      "required_grounding_tags": ["block_cipher_modes", "ecb_pattern"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_ml_001",
+      "domain": "ml",
+      "capabilities": ["overfitting", "model_eval"],
+      "prompt": "A model achieves 99% training accuracy and 62% validation accuracy on a dataset of 1000 samples. Diagnose the most likely cause and propose one mitigation.",
+      "evidence_pack": "Train: 99%, Val: 62%, gap > 30 points.",
+      "difficulty": 0.25,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "overfitting",
+      "accepted_alternatives": ["model is overfitting", "overfit", "the model overfits the training data"],
+      "required_methodology": {
+        "prior_source_tags": ["observation"],
+        "inference_method_tags": ["abductive", "statistical"]
+      },
+      "required_grounding_tags": ["overfitting", "generalization_gap"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_ml_002",
+      "domain": "ml",
+      "capabilities": ["linear_algebra", "training_dynamics"],
+      "prompt": "An optimizer's loss is increasing rather than decreasing across early epochs. Identify the most likely root cause given a too-large learning rate.",
+      "evidence_pack": "lr=10.0 with default-scale features; loss climbing.",
+      "difficulty": 0.30,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "learning rate too high",
+      "accepted_alternatives": ["divergence due to learning rate", "lr is too large", "too-high learning rate causing divergence"],
+      "required_methodology": {
+        "prior_source_tags": ["observation", "tool"],
+        "inference_method_tags": ["deductive", "abductive"]
+      },
+      "required_grounding_tags": ["optimizer", "learning_rate", "divergence"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_ml_003",
+      "domain": "ml",
+      "capabilities": ["evaluation"],
+      "prompt": "Given a binary classifier with accuracy=0.95 on a dataset where 95% of samples belong to one class, comment on whether accuracy is a meaningful metric here.",
+      "evidence_pack": "Class imbalance 95/5; accuracy=0.95.",
+      "difficulty": 0.25,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "accuracy is misleading on imbalanced data",
+      "accepted_alternatives": ["accuracy not meaningful", "classifier may always predict majority class", "use F1 or recall instead"],
+      "required_methodology": {
+        "prior_source_tags": ["observation"],
+        "inference_method_tags": ["statistical", "deductive"]
+      },
+      "required_grounding_tags": ["class_imbalance", "metrics"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_forensics_001",
+      "domain": "forensics",
+      "capabilities": ["disk_analysis"],
+      "prompt": "A disk image's MBR signature 0x55AA is missing but partition table entries are intact. Conclusion: is the disk recoverable, and what is the first remediation step?",
+      "evidence_pack": "Sector 0 truncated at offset 0x1FE.",
+      "difficulty": 0.40,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "recoverable; rewrite the MBR signature",
+      "accepted_alternatives": ["yes recoverable", "restore 0x55AA at offset 0x1FE", "rewrite MBR boot signature"],
+      "required_methodology": {
+        "prior_source_tags": ["tool", "observation"],
+        "inference_method_tags": ["deductive"]
+      },
+      "required_grounding_tags": ["mbr", "disk_layout"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_forensics_002",
+      "domain": "forensics",
+      "capabilities": ["network_capture"],
+      "prompt": "A pcap shows TCP retransmissions only on egress traffic from one host. State the most likely cause and one verification step.",
+      "evidence_pack": "Only host 10.0.0.5 shows egress retransmissions.",
+      "difficulty": 0.35,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "egress link congestion or NIC issue on 10.0.0.5",
+      "accepted_alternatives": ["egress packet loss on host", "outbound link issue", "NIC or upstream switch port problem"],
+      "required_methodology": {
+        "prior_source_tags": ["tool", "observation"],
+        "inference_method_tags": ["abductive"]
+      },
+      "required_grounding_tags": ["tcp", "network_diagnosis"]
+    }
+  },
+  {
+    "task": {
+      "id": "seed_forensics_003",
+      "domain": "forensics",
+      "capabilities": ["memory"],
+      "prompt": "A process on Linux shows RSS=200MB but the heap dumps reveal only 30MB of allocations. Identify the likely source of the discrepancy.",
+      "evidence_pack": "RSS=200MB; heap=30MB; many shared libraries mapped.",
+      "difficulty": 0.50,
+      "generated_from": "seed"
+    },
+    "ground_truth": {
+      "conclusion": "memory-mapped libraries / shared pages",
+      "accepted_alternatives": ["shared library mappings", "mmap-backed memory", "RSS counts mapped files"],
+      "required_methodology": {
+        "prior_source_tags": ["tool"],
+        "inference_method_tags": ["deductive"]
+      },
+      "required_grounding_tags": ["rss", "mmap", "process_memory"]
+    }
+  }
+]

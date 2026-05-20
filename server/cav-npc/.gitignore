@@ -1,0 +1,9 @@
+# Secrets - NEVER commit
+.env
+secrets.vault
+npc-keys/
+
+# Build artifacts
+bin/
+cav-npc
+cav-npc.exe

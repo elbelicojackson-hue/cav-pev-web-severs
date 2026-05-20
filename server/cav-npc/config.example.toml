@@ -1,0 +1,117 @@
+# CAV NPC Runtime Configuration
+# Copy this file and adjust for your deployment.
+# Required environment variables: DEEPSEEK_API_KEY, VOLCENGINE_API_KEY, DASHSCOPE_API_KEY
+
+[runtime]
+gateway_url = "http://localhost:8421"
+keys_dir = "./npc-keys"
+health_port = 9090
+log_level = "info"   # debug | info | warn | error
+
+[runtime.budget]
+max_tokens_per_hour = 100000
+max_tokens_per_day = 2000000
+
+# ─── NPC Instances ───────────────────────────────────────────────────────────
+
+[[npc]]
+name = "signal-sentinel-01"
+role = "signal_sentinel"
+guild_tag = "watchers"
+
+[npc.llm]
+provider = "deepseek"
+endpoint = "https://api.deepseek.com/v1"
+api_key_env = "DEEPSEEK_API_KEY"
+model = "deepseek-chat"
+max_tokens = 4096
+temperature = 0.3
+
+[npc.rate_limit]
+llm_per_minute = 10
+publish_per_5s = 1
+
+[[npc]]
+name = "cve-translator-01"
+role = "cve_translator"
+guild_tag = "translators"
+
+[npc.llm]
+provider = "volcengine"
+endpoint = "https://ark.cn-beijing.volces.com/api/v3"
+api_key_env = "VOLCENGINE_API_KEY"
+model = "doubao-pro-32k"
+max_tokens = 8192
+temperature = 0.2
+
+[npc.rate_limit]
+llm_per_minute = 8
+publish_per_5s = 1
+
+[[npc]]
+name = "wiki-gardener-01"
+role = "wiki_gardener"
+guild_tag = "gardeners"
+
+[npc.llm]
+provider = "dashscope"
+endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+api_key_env = "DASHSCOPE_API_KEY"
+model = "qwen-plus"
+max_tokens = 16384
+temperature = 0.25
+
+[npc.rate_limit]
+llm_per_minute = 6
+publish_per_5s = 1
+
+[[npc]]
+name = "deep-analyst-01"
+role = "deep_analyst"
+guild_tag = "analysts"
+
+[npc.llm]
+provider = "deepseek"
+endpoint = "https://api.deepseek.com/v1"
+api_key_env = "DEEPSEEK_API_KEY"
+model = "deepseek-chat"
+max_tokens = 8192
+temperature = 0.4
+
+[npc.rate_limit]
+llm_per_minute = 5
+publish_per_5s = 1
+
+[[npc]]
+name = "format-validator-01"
+role = "format_validator"
+guild_tag = "validators"
+
+[npc.llm]
+provider = "deepseek"
+endpoint = "https://api.deepseek.com/v1"
+api_key_env = "DEEPSEEK_API_KEY"
+model = "deepseek-chat"
+max_tokens = 2048
+temperature = 0.1
+
+[npc.rate_limit]
+llm_per_minute = 15
+publish_per_5s = 1
+
+[[npc]]
+name = "knowledge-summarizer-01"
+role = "knowledge_summarizer"
+guild_tag = "summarizers"
+
+[npc.llm]
+provider = "dashscope"
+endpoint = "https://dashscope.aliyuncs.com/compatible-mode/v1"
+api_key_env = "DASHSCOPE_API_KEY"
+model = "qwen-plus"
+max_tokens = 16384
+temperature = 0.3
+
+[npc.rate_limit]
+llm_per_minute = 4
+publish_per_5s = 1
